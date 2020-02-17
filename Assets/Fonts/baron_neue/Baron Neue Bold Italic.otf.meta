@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: bdcebec09ba337e7386fadf40e82245f
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Baron Neue
+  fontNames:
+  - Baron Neue
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 5d1958b13d8f4cec286f4a013b1edb0f, type: 3}
+  - {fileID: 12800000, guid: 887e6fd52cd24835fa327880d2d9bc6e, type: 3}
+  - {fileID: 12800000, guid: d622b6f788eb060d0a9a3f34944abdd3, type: 3}
+  - {fileID: 12800000, guid: 7af8c96af3fcdd149a54929d4c378cd3, type: 3}
+  - {fileID: 12800000, guid: fc144a2f945f6d9b18458f99fc56c8d8, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
