@@ -16,5 +16,13 @@ namespace Columns {
             get => color;
             set => color = value;
         }
+
+        public override bool AddCards(Card card) {
+            throw new System.NotImplementedException();
+        }
+
+        public override void UpdateColumn() {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -4,19 +4,23 @@ using System.Collections.Generic;
 using Cards;
 using Columns;
 using UnityEngine;
-using UnityEngine.UI;
-using Random = System.Random;
+using Random = UnityEngine.Random;
 
 namespace Managers {
     public class GameManager : MonoBehaviour {
         [SerializeField] private Canvas canvas;
         [SerializeField] private Transform deckTransform;
-        [SerializeField] private Column[] columns;
+        [SerializeField] private VerticalColumn[] columns;
         [SerializeField] private GameObject cardGameObject;
+        [SerializeField] private DraggedCards draggedCards;
+        [SerializeField] private int seed;
 
         private Dictionary<CardEnum.CardSuit, CardEnum.SuitColor> _suitColors;
         private readonly Card[] _deck = new Card[13 * 4];
         public static GameManager Instance { get; private set; }
+        
+
+        public DraggedCards DraggedCards => draggedCards;
 
         private void Awake() {
             if (Instance != null && Instance != this) {
@@ -25,21 +29,16 @@ namespace Managers {
             else {
                 Instance = this;
             }
+
+            Random.seed = seed;
+            Debug.Log(Random.seed);
         }
 
         private void Start() {
-            var scaler = canvas.gameObject.GetComponent<CanvasScaler>();
-            float canvasScale = GetCanvasScale(Screen.currentResolution.width, Screen.currentResolution.height, scaler.referenceResolution, 0.5f);
-            canvas.transform.localScale *= canvasScale;
             AssignSuitColors();
             MakeDeck();
             ShuffleDeck();
             StartCoroutine(InstantiateAndMoveCardsToColumns());
-        }
-
-        private static float GetCanvasScale(int width, int height, Vector2 scalerReferenceResolution, float scalerMatchWidthOrHeight) {
-            return Mathf.Pow(width / scalerReferenceResolution.x, 1f - scalerMatchWidthOrHeight) *
-                   Mathf.Pow(height / scalerReferenceResolution.y, scalerMatchWidthOrHeight);
         }
 
         private void InstantiateCardsLeft(int lastDeckIndex) {
@@ -77,7 +76,7 @@ namespace Managers {
             var column = columns[columnIndex];
             cardObject.transform.SetParent(column.transform);
 
-            var cardInColumnPosition = GetCardInColumnPosition(column);
+            var cardInColumnPosition = GetCardDestinationPosition(column.transform, column.VerticalLayoutGroup.spacing);
 
             while (Vector3.Distance(cardObject.transform.position, cardInColumnPosition) >= 1f) {
                 cardObject.transform.position = Vector3.MoveTowards(cardObject.transform.position, cardInColumnPosition, Time.deltaTime * 1000);
@@ -87,15 +86,13 @@ namespace Managers {
             IsLastCard(cardObject, columnIndex, column);
         }
 
-        private static Vector3 GetCardInColumnPosition(Column column) {
-            var columnTransform = column.transform;
-            float spacing = column.VerticalLayoutGroup.spacing;
-            int childInGroup = columnTransform.childCount;
-            var columnLocalPosition = columnTransform.localPosition;
+        public static Vector3 GetCardDestinationPosition(Transform parentTransform, float spacing) {
+            int childInGroup = parentTransform.childCount;
+            var columnLocalPosition = parentTransform.localPosition;
 
             var cardInColumnPosition =
-                columnTransform.TransformPoint(new Vector3(columnLocalPosition.x, columnLocalPosition.y - spacing * (childInGroup - 1), columnLocalPosition.z));
-            cardInColumnPosition = new Vector3(columnTransform.position.x, cardInColumnPosition.y, cardInColumnPosition.z);
+                parentTransform.TransformPoint(new Vector3(columnLocalPosition.x, columnLocalPosition.y - spacing * (childInGroup - 1), columnLocalPosition.z));
+            cardInColumnPosition = new Vector3(parentTransform.position.x, cardInColumnPosition.y, cardInColumnPosition.z);
             return cardInColumnPosition;
         }
 
@@ -106,7 +103,7 @@ namespace Managers {
         }
 
         private void ShuffleDeck() {
-            var random = new Random();
+            var random = new System.Random();
 
             for (int i = _deck.Length - 1; i > 0; i--) {
                 int j = random.Next(i);
@@ -132,6 +129,12 @@ namespace Managers {
             foreach (CardEnum.CardSuit suit in Enum.GetValues(typeof(CardEnum.CardSuit))) {
                 _suitColors.Add(suit, (CardEnum.SuitColor) Enum.GetValues(typeof(CardEnum.SuitColor)).GetValue(i % 2));
                 i++;
+            }
+        }
+
+        public void NotifyMoveToColumns() {
+            foreach (var column in columns) {
+                column.TurnTopCard();
             }
         }
     }
