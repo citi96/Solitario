@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Columns;
 using Managers;
 using UnityEngine;
@@ -6,13 +7,12 @@ using UnityEngine.UI;
 
 namespace Cards {
     public class CardObject : MonoBehaviour, IComparable {
-        [SerializeField] private Image back;
-        [SerializeField] private Image[] suits;
-        [SerializeField] private Image number;
-
         private Card _card;
         private DraggedCards _draggedCards;
         private Column _draggedColumn;
+        [SerializeField] private Image back;
+        [SerializeField] private Image number;
+        [SerializeField] private Image[] suits;
 
         public Card Card {
             get => _card;
@@ -20,6 +20,12 @@ namespace Cards {
                 _card = value;
                 InitCard();
             }
+        }
+
+        public int CompareTo(object obj) {
+            if (obj is CardObject other)
+                return other.Card.Number - _card.Number;
+            return 0;
         }
 
         private void InitCard() {
@@ -46,9 +52,7 @@ namespace Cards {
         }
 
         private void SetSuits() {
-            foreach (var suit in suits) {
-                suit.sprite = Resources.Load<Sprite>($"Cards/Suits/{_card.Suit.ToString()}");
-            }
+            foreach (var suit in suits) suit.sprite = Resources.Load<Sprite>($"Cards/Suits/{_card.Suit.ToString()}");
         }
 
         public void Turn() {
@@ -65,18 +69,18 @@ namespace Cards {
             _draggedColumn = GetComponentInParent<Column>();
             var cardsToDrag = _draggedColumn.PickCardsFromColumn(this);
 
-            _draggedCards.gameObject.SetActive((true));
+            _draggedCards.gameObject.SetActive(true);
 
             foreach (var card in cardsToDrag) {
                 card.transform.SetParent(_draggedCards.transform);
-                var destination = GameManager.GetCardDestinationPosition(_draggedCards.transform, 55f);
+                var destination = GameManager.GetCardDestinationPosition(_draggedCards.transform, _draggedCards.Spacing);
                 card.transform.position = destination;
             }
         }
 
         public void OnCardMoved() {
             // Drag cards only if selected
-            if (_draggedCards != null) 
+            if (_draggedCards != null)
                 _draggedCards.MoveCards();
         }
 
@@ -85,7 +89,9 @@ namespace Cards {
 
             if (hit.collider != null) {
                 var hitCollider = hit.collider.GetComponent<ColumnCollider>();
-                if (hitCollider.CanAddCards(_card)) {
+                var cardsToAdd = _draggedCards.transform.Cast<Transform>().Select(child => child.GetComponent<CardObject>()).ToArray();
+                if (hitCollider.CanAddCards(cardsToAdd.Select(c => c.Card).ToArray())) {
+                    _draggedColumn.RemoveCards(cardsToAdd);
                     _draggedCards.AddCardToColumn(hitCollider.Column);
                     GameManager.Instance.NotifyMoveToColumns();
                     return;
@@ -97,12 +103,6 @@ namespace Cards {
 
             _draggedCards = null;
             _draggedColumn = null;
-        }
-
-        public int CompareTo(object obj) {
-            if (obj is CardObject other)
-                return other.Card.Number - _card.Number;
-            return 0;
         }
     }
 }

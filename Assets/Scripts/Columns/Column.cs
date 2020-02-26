@@ -6,10 +6,11 @@ using UnityEngine.UI;
 
 namespace Columns {
     public abstract class Column : MonoBehaviour {
+        protected readonly List<CardObject> cards = new List<CardObject>();
+        protected int number;
         [SerializeField] protected VerticalLayoutGroup verticalLayoutGroup;
 
-        public abstract CardEnum.CardSuit Suit { get; set; }
-        public abstract CardEnum.SuitColor Color { get; set; }
+        protected abstract CardEnum.CardSuit Suit { get; set; }
 
         public VerticalLayoutGroup VerticalLayoutGroup => verticalLayoutGroup;
 
@@ -17,22 +18,24 @@ namespace Columns {
             var children = GetComponentsInChildren<CardObject>();
             int i = 0;
 
-            for (; i < children.Length; i++) {
+            for (; i < children.Length; i++)
                 if (children[i].Equals(cardObject)) {
                     break;
                     ;
                 }
-            }
 
             return children.Skip(i).ToArray();
         }
 
-        public abstract bool AddCards(Card card);
-        
+        public abstract bool AddCards(Card[] cardsToAdd);
+
         /// <summary>
-        /// Used in VerticalColumn to restore cards order after a dragging operation with multiple cards.
-        /// Sometimes order is lost after such operation, this method prevents this possibility.
+        ///     Used in VerticalColumn to restore cards order after a dragging operation with multiple cards.
+        ///     Sometimes order is lost after such operation, this method prevents this possibility.
         /// </summary>
         public abstract void UpdateColumn();
+
+        public abstract void AddCoveredCards(CardObject card);
+        public abstract void RemoveCards(IEnumerable<CardObject> cards);
     }
 }

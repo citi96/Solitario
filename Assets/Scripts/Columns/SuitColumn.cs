@@ -1,28 +1,29 @@
+using System;
+using System.Collections.Generic;
 using Cards;
 using UnityEngine;
 
 namespace Columns {
-    public class SuitColumn : Column{
+    public class SuitColumn : Column {
         [SerializeField] protected CardEnum.CardSuit suit;
-        [SerializeField] protected CardEnum.SuitColor color;
 
-
-        public override CardEnum.CardSuit Suit {
+        protected override CardEnum.CardSuit Suit {
             get => suit;
             set => suit = value;
         }
 
-        public override CardEnum.SuitColor Color {
-            get => color;
-            set => color = value;
+        public override bool AddCards(Card[] cardsToAdd) {
+            throw new NotImplementedException();
         }
 
-        public override bool AddCards(Card card) {
-            throw new System.NotImplementedException();
+        public override void UpdateColumn() { }
+
+        public override void AddCoveredCards(CardObject card) {
+            throw new NotImplementedException();
         }
 
-        public override void UpdateColumn() {
-            throw new System.NotImplementedException();
+        public override void RemoveCards(IEnumerable<CardObject> cards) {
+            throw new NotImplementedException();
         }
     }
 }

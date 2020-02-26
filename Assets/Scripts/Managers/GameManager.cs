@@ -8,27 +8,25 @@ using Random = UnityEngine.Random;
 
 namespace Managers {
     public class GameManager : MonoBehaviour {
-        [SerializeField] private Canvas canvas;
-        [SerializeField] private Transform deckTransform;
-        [SerializeField] private VerticalColumn[] columns;
-        [SerializeField] private GameObject cardGameObject;
-        [SerializeField] private DraggedCards draggedCards;
-        [SerializeField] private int seed;
+        private readonly Card[] _deck = new Card[13 * 4];
 
         private Dictionary<CardEnum.CardSuit, CardEnum.SuitColor> _suitColors;
-        private readonly Card[] _deck = new Card[13 * 4];
+        [SerializeField] private Canvas canvas;
+        [SerializeField] private GameObject cardGameObject;
+        [SerializeField] private VerticalColumn[] columns;
+        [SerializeField] private Transform deckTransform;
+        [SerializeField] private DraggedCards draggedCards;
+        [SerializeField] private int seed;
         public static GameManager Instance { get; private set; }
-        
+
 
         public DraggedCards DraggedCards => draggedCards;
 
         private void Awake() {
-            if (Instance != null && Instance != this) {
+            if (Instance != null && Instance != this)
                 Destroy(gameObject);
-            }
-            else {
+            else
                 Instance = this;
-            }
 
             Random.seed = seed;
             Debug.Log(Random.seed);
@@ -42,9 +40,7 @@ namespace Managers {
         }
 
         private void InstantiateCardsLeft(int lastDeckIndex) {
-            for (int i = lastDeckIndex; i < _deck.Length; i++) {
-                InstantiateCard(lastDeckIndex);
-            }
+            for (int i = lastDeckIndex; i < _deck.Length; i++) InstantiateCard(lastDeckIndex);
         }
 
         private CardObject InstantiateCard(int index) {
@@ -74,7 +70,7 @@ namespace Managers {
 
         private IEnumerator MoveToColumn(CardObject cardObject, int columnIndex) {
             var column = columns[columnIndex];
-            cardObject.transform.SetParent(column.transform);
+            column.AddCoveredCards(cardObject);
 
             var cardInColumnPosition = GetCardDestinationPosition(column.transform, column.VerticalLayoutGroup.spacing);
 
@@ -83,7 +79,7 @@ namespace Managers {
                 yield return new WaitForSeconds(0.02f);
             }
 
-            IsLastCard(cardObject, columnIndex, column);
+            IsLastCard(cardObject, column);
         }
 
         public static Vector3 GetCardDestinationPosition(Transform parentTransform, float spacing) {
@@ -96,8 +92,8 @@ namespace Managers {
             return cardInColumnPosition;
         }
 
-        private static void IsLastCard(CardObject cardObject, int columnIndex, Column column) {
-            if (column.transform.childCount != columnIndex + 1 || column.transform.GetChild(columnIndex) != cardObject.transform) return;
+        private static void IsLastCard(CardObject cardObject, VerticalColumn column) {
+            if (!column.IsInitPhaseFinished(cardObject)) return;
             column.VerticalLayoutGroup.enabled = true;
             cardObject.Turn();
         }
@@ -115,11 +111,9 @@ namespace Managers {
 
         private void MakeDeck() {
             int i = 0;
-            foreach (var suit in _suitColors.Keys) {
-                for (int j = 1; j < 14; j++) {
+            foreach (var suit in _suitColors.Keys)
+                for (int j = 1; j < 14; j++)
                     _deck[i++] = new Card(j, suit, _suitColors[suit]);
-                }
-            }
         }
 
         private void AssignSuitColors() {
@@ -133,9 +127,7 @@ namespace Managers {
         }
 
         public void NotifyMoveToColumns() {
-            foreach (var column in columns) {
-                column.TurnTopCard();
-            }
+            foreach (var column in columns) column.TurnTopCard();
         }
     }
 }

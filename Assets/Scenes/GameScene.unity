@@ -310,6 +310,7 @@ MonoBehaviour:
   cardGameObject: {fileID: 3216933465846644392, guid: 942101eb3455acc4e9106c9d1ce6ba0a,
     type: 3}
   draggedCards: {fileID: 1108844242}
+  seed: -1731020935
 --- !u!4 &195483039
 Transform:
   m_ObjectHideFlags: 0
@@ -1542,6 +1543,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvas: {fileID: 886331558}
+  spacing: 130
 --- !u!114 &1132214013 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3677976866147622539, guid: 43404beacd8e3753db0931e26c5c2f96,
