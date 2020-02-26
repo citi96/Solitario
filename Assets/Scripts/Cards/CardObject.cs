@@ -10,9 +10,13 @@ namespace Cards {
         private Card _card;
         private DraggedCards _draggedCards;
         private Column _draggedColumn;
+
+        private bool _isTriggerActive = true;
         [SerializeField] private Image back;
         [SerializeField] private Image number;
         [SerializeField] private Image[] suits;
+
+        public bool IsInDeck { get; set; } = false;
 
         public Card Card {
             get => _card;
@@ -55,14 +59,18 @@ namespace Cards {
             foreach (var suit in suits) suit.sprite = Resources.Load<Sprite>($"Cards/Suits/{_card.Suit.ToString()}");
         }
 
-        public void Turn() {
-            back.gameObject.SetActive(false);
-            Card.IsVisible = true;
+        /// <summary>
+        /// Turn the card up or down.
+        /// </summary>
+        /// <param name="down">True = card is facing down (back visible); False = card is facing up.</param>
+        public void Turn(bool down) {
+            back.gameObject.SetActive(down);
+            Card.IsVisible = !down;
         }
 
         public void OnCardSelected() {
-            // Do not enable dragging operation if others are still pending
-            if (GameManager.Instance.DraggedCards.transform.childCount > 0)
+            // Do not enable dragging operation if others are still pending or trigger is not enabled
+            if (GameManager.Instance.DraggedCards.transform.childCount > 0 || !_isTriggerActive)
                 return;
 
             _draggedCards = GameManager.Instance.DraggedCards;
@@ -85,24 +93,36 @@ namespace Cards {
         }
 
         public void OnCardDropped() {
-            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            if (!_isTriggerActive || _draggedCards == null) return;
 
-            if (hit.collider != null) {
-                var hitCollider = hit.collider.GetComponent<ColumnCollider>();
+            var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
+            ColumnCollider hitCollider;
+
+            if (hit.collider != null && (hitCollider = hit.collider.GetComponent<ColumnCollider>()) != null) {
                 var cardsToAdd = _draggedCards.transform.Cast<Transform>().Select(child => child.GetComponent<CardObject>()).ToArray();
-                if (hitCollider.CanAddCards(cardsToAdd.Select(c => c.Card).ToArray())) {
-                    _draggedColumn.RemoveCards(cardsToAdd);
+                if (hitCollider.CanAddCards(cardsToAdd)) {
                     _draggedCards.AddCardToColumn(hitCollider.Column);
+                    _draggedColumn.RemoveCards(cardsToAdd);
                     GameManager.Instance.NotifyMoveToColumns();
                     return;
                 }
             }
 
-            _draggedCards.MoveCardsToColumn(GameManager.GetCardDestinationPosition(_draggedColumn.transform, _draggedColumn.VerticalLayoutGroup.spacing),
+            _draggedCards.MoveCardsToColumn(GameManager.GetCardDestinationPosition(_draggedColumn.transform, _draggedColumn.Spacing),
                 0.02f, _draggedColumn);
 
             _draggedCards = null;
             _draggedColumn = null;
+        }
+
+        public void TurnCardFromDeck() {
+            if (IsInDeck) {
+                GameManager.Instance.PickCardFromDeck(this);
+            }
+        }
+
+        public void SetTriggerActive(bool active) {
+            _isTriggerActive = active;
         }
     }
 }

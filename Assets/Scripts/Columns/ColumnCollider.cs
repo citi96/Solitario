@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace Columns {
     public class ColumnCollider : MonoBehaviour {
-        [SerializeField] private Collider2D collider;
         [SerializeField] private Column column;
 
         public Column Column => column;
@@ -11,11 +10,11 @@ namespace Columns {
         private void Update() {
             int columnChildCount = Column.transform.childCount;
 
-            if (columnChildCount > 0) transform.position = Column.transform.GetChild(columnChildCount - 1).position;
+            transform.position = columnChildCount > 0 ? Column.transform.GetChild(columnChildCount - 1).position : column.transform.position;
         }
 
-        public bool CanAddCards(Card[] card) {
-            return Column.AddCards(card);
+        public bool CanAddCards(CardObject[] cards) {
+            return Column.AddCards(cards);
         }
     }
 }

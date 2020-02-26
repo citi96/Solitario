@@ -2,64 +2,68 @@ using System.Collections.Generic;
 using System.Linq;
 using Cards;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Columns {
-    public class VerticalColumn : Column {
+    public class VerticalColumn : StandardColumn {
+        [SerializeField] private VerticalLayoutGroup layoutGroup;
         [SerializeField] private int maxCoveredCards;
         protected override CardEnum.CardSuit Suit { get; set; }
-        private CardEnum.SuitColor Color { get; set; }
 
-        public override void AddCoveredCards(CardObject card) {
+        public override float Spacing => layoutGroup.spacing;
+
+        public bool LayoutGroupEnabled {
+            set => layoutGroup.enabled = value;
+        }
+
+        public void AddCoveredCards(CardObject card) {
             card.transform.SetParent(transform);
-            cards.Add(card);
+            Cards.Add(card);
 
-            if (cards.Count == maxCoveredCards + 1) UpdateLastCard(card.Card);
+            if (Cards.Count == maxCoveredCards + 1) UpdateLastCard(card.Card);
         }
 
         public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
-            foreach (var cardToRemove in cardsToRemove) cards.Remove(cardToRemove);
-
-            UpdateLastCard(cards[cards.Count - 1].Card);
-            TurnTopCard();
+            base.RemoveCards(cardsToRemove);
+            if (Cards.Count > 0) {
+                TurnTopCard();
+            }
         }
 
-        private void UpdateLastCard(Card card) {
-            Suit = card.Suit;
-            Color = card.SuitColor;
-            number = card.Number;
-        }
 
-        public override bool AddCards(Card[] cardsToAdd) {
+        public override bool AddCards(CardObject[] cardsToAdd) {
             bool success = false;
-            int childCount = cards.Count;
+            var cardToAdd = cardsToAdd[0].Card;
 
-            if (number != 0 && childCount < 13)
-                success = Color != cardsToAdd[0].SuitColor && number == cardsToAdd[0].Number + 1;
-            else if (number == 0) success = cardsToAdd[0].Number == 13;
+            if (Cards.Count > 0 && !IsComplete)
+                success = card.SuitColor != cardToAdd.SuitColor && card.Number == cardToAdd.Number + 1;
+            else if (Cards.Count == 0) success = cardToAdd.Number == 13;
 
-            if (success) UpdateLastCard(cardsToAdd[cardsToAdd.Length - 1]);
+            AddCardsToList(cardsToAdd, success);
 
             return success;
         }
 
         public override void UpdateColumn() {
-            var visibleCards = cards.Where(card => card.Card.IsVisible).ToList();
-            int turnedCardsCount = cards.Count - visibleCards.Count;
+            var visibleCards = Cards.Where(card => card.Card.IsVisible).ToList();
+            int turnedCardsCount = Cards.Count - visibleCards.Count;
 
             visibleCards.Sort();
 
-            for (int i = 0; i < visibleCards.Count(); i++)
+            for (int i = 0; i < visibleCards.Count; i++)
                 visibleCards.ElementAt(i).transform.SetSiblingIndex(turnedCardsCount++);
         }
 
         public void TurnTopCard() {
-            int childCount = cards.Count;
+            int childCount = Cards.Count;
 
-            if (childCount > 0 && !cards[childCount - 1].Card.IsVisible) cards[childCount - 1].Turn();
+            if (childCount > 0 && !Cards[childCount - 1].Card.IsVisible) {
+                Cards[childCount - 1].Turn(false);
+            }
         }
 
         public bool IsInitPhaseFinished(CardObject cardObject) {
-            return cards.Count == maxCoveredCards + 1 && cards[maxCoveredCards].transform == cardObject.transform;
+            return Cards.Count == maxCoveredCards + 1 && Cards[maxCoveredCards].transform == cardObject.transform;
         }
     }
 }

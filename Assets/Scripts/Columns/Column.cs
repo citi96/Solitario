@@ -2,17 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Cards;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Columns {
     public abstract class Column : MonoBehaviour {
-        protected readonly List<CardObject> cards = new List<CardObject>();
-        protected int number;
-        [SerializeField] protected VerticalLayoutGroup verticalLayoutGroup;
+        protected Card card;
 
-        protected abstract CardEnum.CardSuit Suit { get; set; }
-
-        public VerticalLayoutGroup VerticalLayoutGroup => verticalLayoutGroup;
+        public abstract float Spacing { get; }
+        public List<CardObject> Cards { get; } = new List<CardObject>();
 
         public IEnumerable<CardObject> PickCardsFromColumn(CardObject cardObject) {
             var children = GetComponentsInChildren<CardObject>();
@@ -21,21 +17,31 @@ namespace Columns {
             for (; i < children.Length; i++)
                 if (children[i].Equals(cardObject)) {
                     break;
-                    ;
                 }
 
             return children.Skip(i).ToArray();
         }
 
-        public abstract bool AddCards(Card[] cardsToAdd);
+        public abstract bool AddCards(CardObject[] cardsToAdd);
+
+        public virtual void RemoveCards(IEnumerable<CardObject> cards) {
+            foreach (var cardToRemove in cards) {
+                Cards.Remove(cardToRemove);
+            }
+        }
 
         /// <summary>
-        ///     Used in VerticalColumn to restore cards order after a dragging operation with multiple cards.
-        ///     Sometimes order is lost after such operation, this method prevents this possibility.
+        /// Used in VerticalColumn to restore cards order after a dragging operation with multiple cards.
+        /// Sometimes order is lost after such operation, this method prevents this possibility. 
         /// </summary>
         public abstract void UpdateColumn();
 
-        public abstract void AddCoveredCards(CardObject card);
-        public abstract void RemoveCards(IEnumerable<CardObject> cards);
+        protected virtual void AddCardsToList(IEnumerable<CardObject> cardsToAdd, bool success) {
+            if (success) {
+                foreach (var cardObject in cardsToAdd) {
+                    Cards.Add(cardObject);
+                }
+            }
+        }
     }
 }
