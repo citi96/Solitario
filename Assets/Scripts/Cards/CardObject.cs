@@ -4,18 +4,19 @@ using System.Linq;
 using Columns;
 using Managers;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Cards {
     public class CardObject : MonoBehaviour, IComparable {
-        private Card _card;
-        private DraggedCards _draggedCards;
-        private Column _draggedColumn;
-
-        private bool _isTriggerActive = true;
         [SerializeField] private Image back;
         [SerializeField] private Image number;
         [SerializeField] private Image[] suits;
+        [SerializeField] private EventTrigger trigger;
+
+        private Card _card;
+        private DraggedCards _draggedCards;
+        private Column _draggedColumn;
 
         public bool IsInDeck { get; set; } = false;
 
@@ -25,6 +26,10 @@ namespace Cards {
                 _card = value;
                 InitCard();
             }
+        }
+
+        public bool TriggerActive {
+            set => trigger.gameObject.SetActive(value);
         }
 
         public int CompareTo(object obj) {
@@ -81,8 +86,8 @@ namespace Cards {
         }
 
         public void OnCardSelected() {
-            // Do not enable dragging operation if others are still pending or trigger is not enabled
-            if (GameManager.Instance.DraggedCards.transform.childCount > 0 || !_isTriggerActive)
+            // Do not enable dragging operation if others are still pending
+            if (GameManager.Instance.DraggedCards.transform.childCount > 0)
                 return;
 
             _draggedCards = GameManager.Instance.DraggedCards;
@@ -105,7 +110,7 @@ namespace Cards {
         }
 
         public void OnCardDropped() {
-            if (!_isTriggerActive || _draggedCards == null) return;
+            if (_draggedCards == null) return;
 
             var hit = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(Input.mousePosition), Vector2.zero);
             ColumnCollider hitCollider;
@@ -129,12 +134,8 @@ namespace Cards {
 
         public void TurnCardFromDeck() {
             if (IsInDeck) {
-                GameManager.Instance.PickCardFromDeck(this);
+                DeckManager.Instance.PickCardFromDeckAfterClick(this);
             }
-        }
-
-        public void SetTriggerActive(bool active) {
-            _isTriggerActive = active;
         }
     }
 }

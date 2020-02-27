@@ -19,7 +19,7 @@ namespace Columns {
 
         public override void RemoveCards(IEnumerable<CardObject> card) {
             base.RemoveCards(card);
-            GameManager.Instance.UpdateDeckDropColumnAfterCardRemove(this);
+            DeckManager.Instance.UpdateDeckDropColumnAfterCardRemove(this);
         }
 
         public override void UpdateColumn() { }
