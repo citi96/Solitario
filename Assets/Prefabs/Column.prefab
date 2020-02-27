@@ -74,5 +74,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f45f9a64544141cea6044ebf274a8853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  addingScore: 5
   layoutGroup: {fileID: 152336474007301795}
   maxCoveredCards: 0

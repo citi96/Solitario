@@ -30,6 +30,8 @@ namespace Columns {
             }
         }
 
+        protected override void UpdateCardOperation() { }
+
 
         public override bool AddCards(CardObject[] cardsToAdd) {
             bool success = false;
@@ -40,6 +42,7 @@ namespace Columns {
             else if (Cards.Count == 0) success = cardToAdd.Number == 13;
 
             AddCardsToList(cardsToAdd, success);
+            UpdateScore(cardsToAdd, success);
 
             return success;
         }
@@ -58,7 +61,7 @@ namespace Columns {
             int childCount = Cards.Count;
 
             if (childCount > 0 && !Cards[childCount - 1].Card.IsVisible) {
-                Cards[childCount - 1].Turn(false);
+                Cards[childCount - 1].Flip(false);
             }
         }
 

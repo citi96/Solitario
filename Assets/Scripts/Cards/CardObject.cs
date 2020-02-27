@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Columns;
 using Managers;
@@ -60,12 +61,23 @@ namespace Cards {
         }
 
         /// <summary>
-        /// Turn the card up or down.
+        /// Flip the card up or down.
         /// </summary>
         /// <param name="down">True = card is facing down (back visible); False = card is facing up.</param>
-        public void Turn(bool down) {
-            back.gameObject.SetActive(down);
+        public void Flip(bool down) {
+            StartCoroutine(PlayFlipAnimation(down ? 0 : 180, down, down ? -1 : 1));
             Card.IsVisible = !down;
+        }
+
+        private IEnumerator PlayFlipAnimation(float y, bool down, int direction) {
+            while (Math.Abs(transform.eulerAngles.y - y) > 1f) {
+                transform.Rotate(Vector3.up, 10 * direction);
+                if (Math.Abs(transform.eulerAngles.y - 90) < 1f) {
+                    back.gameObject.SetActive(down);
+                }
+
+                yield return new WaitForSeconds(0.02f);
+            }
         }
 
         public void OnCardSelected() {

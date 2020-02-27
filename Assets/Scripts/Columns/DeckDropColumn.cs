@@ -13,7 +13,7 @@ namespace Columns {
             cardsToAdd[0].transform.SetParent(transform);
             AddCardsToList(cardsToAdd, true);
             card = cardsToAdd[0].Card;
-            cardsToAdd[0].Turn(false);
+            cardsToAdd[0].Flip(false);
             return true;
         }
 

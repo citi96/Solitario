@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Cards;
 using Columns;
+using GUI;
 using UnityEngine;
 
 namespace Managers {
@@ -20,6 +21,7 @@ namespace Managers {
         [SerializeField] private Column[] deckDropColumns;
         [SerializeField] private Transform deckTransform;
         [SerializeField] private DraggedCards draggedCards;
+        [SerializeField] private TopGui topGui;
 
         public static GameManager Instance { get; private set; }
 
@@ -92,7 +94,7 @@ namespace Managers {
         private static void IsLastCard(CardObject cardObject, VerticalColumn column) {
             if (!column.IsInitPhaseFinished(cardObject)) return;
             column.LayoutGroupEnabled = true;
-            cardObject.Turn(false);
+            cardObject.Flip(false);
         }
 
         private void ShuffleDeck() {
@@ -128,6 +130,8 @@ namespace Managers {
         }
 
         public void PickCardFromDeck(CardObject card) {
+            UpdateMove();
+
             if (_dropTransformCount > 0 && _dropTransformCount % 3 == 0) {
                 MoveDroppedCardsToNextColumn();
                 _dropTransformCount = 2;
@@ -199,7 +203,7 @@ namespace Managers {
                 var column = deckDropColumns[i];
                 for (int j = column.Cards.Count - 1; j >= 0; j--) {
                     var card = column.Cards[j];
-                    card.Turn(true);
+                    card.Flip(true);
                     card.transform.SetParent(deckTransform);
                     var destination = GetCardDestinationPosition(deckTransform, 0);
                     StartCoroutine(MoveCardsOnBoard(card, destination, 500));
@@ -210,6 +214,17 @@ namespace Managers {
             }
 
             _dropTransformCount = 0;
+
+            UpdateScore(-10000);
+            UpdateMove();
+        }
+
+        public void UpdateScore(int score) {
+            topGui.ScoreText = score;
+        }
+
+        public void UpdateMove() {
+            topGui.IncrementMoves();
         }
     }
 }

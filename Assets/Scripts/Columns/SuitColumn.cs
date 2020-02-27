@@ -7,6 +7,7 @@ using UnityEngine.UI;
 
 namespace Columns {
     public class SuitColumn : StandardColumn {
+        [SerializeField] private int removingScore;
         [SerializeField] private float spacing;
         [SerializeField] protected CardEnum.CardSuit suit;
         [SerializeField] protected Image suitImage;
@@ -36,6 +37,7 @@ namespace Columns {
             }
 
             AddCardsToList(cardsToAdd, success);
+            UpdateScore(cardsToAdd, success);
 
             return success;
         }
@@ -46,6 +48,15 @@ namespace Columns {
             if (success) {
                 StartCoroutine(GameManager.MoveCardsOnBoard(cardsArray[0], GameManager.GetCardDestinationPosition(transform, Spacing)));
             }
+        }
+
+        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
+            base.RemoveCards(cardsToRemove);
+            GameManager.Instance.UpdateScore(removingScore);
+        }
+
+        protected override void UpdateCardOperation() {
+            GameManager.Instance.UpdateScore(addingScore - 5);
         }
 
         public override void UpdateColumn() { }
