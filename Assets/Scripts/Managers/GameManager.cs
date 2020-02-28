@@ -5,6 +5,7 @@ using Cards;
 using Columns;
 using Events;
 using GUI;
+using Undo.Moves;
 using UnityEngine;
 
 namespace Managers {
@@ -16,6 +17,7 @@ namespace Managers {
         [SerializeField] private Transform deckTransform;
         [SerializeField] private DraggedCards draggedCards;
         [SerializeField] private TopGui topGui;
+        [SerializeField] private Undo.Undo undo;
 
         [SerializeField] private GameEvent enablePauseButtonEvent;
         [SerializeField] private GameEvent enableCardTriggerEvent;
@@ -86,12 +88,13 @@ namespace Managers {
             StartCoroutine(MoveCardsOnBoard(cardObject, cardInColumnPosition, 1000, IsLastCard, column));
         }
 
-        public static Vector3 GetCardDestinationPosition(Transform parentTransform, float spacing) {
+        public Vector3 GetCardDestinationPosition(Transform parentTransform, float spacing, int otherChild = 0) {
             int childInGroup = parentTransform.childCount;
             var parentLocalPosition = parentTransform.localPosition;
 
             var cardInColumnPosition =
-                parentTransform.TransformPoint(new Vector3(parentLocalPosition.x, parentLocalPosition.y - spacing * (childInGroup - 1), parentLocalPosition.z));
+                parentTransform.TransformPoint(new Vector3(parentLocalPosition.x, parentLocalPosition.y - spacing * (childInGroup - 1 + otherChild),
+                    parentLocalPosition.z));
             cardInColumnPosition = new Vector3(parentTransform.position.x, cardInColumnPosition.y, cardInColumnPosition.z);
             return cardInColumnPosition;
         }
@@ -131,11 +134,11 @@ namespace Managers {
         }
 
         public void NotifyMoveToColumns() {
-            foreach (var column in columns) column.TurnTopCard();
+            foreach (var column in columns) column.FlipLastCard();
         }
 
 
-        public static IEnumerator MoveCardsOnBoard(CardObject card, Vector3 destination, float speed = 1000, CallBack callBack = null,
+        public IEnumerator MoveCardsOnBoard(CardObject card, Vector3 destination, float speed = 1000, CallBack callBack = null,
             VerticalColumn column = null) {
             while (Vector3.Distance(card.transform.position, destination) >= 5) {
                 card.transform.position = Vector3.MoveTowards(card.transform.position, destination, Time.deltaTime * speed);
@@ -158,6 +161,10 @@ namespace Managers {
             _waiting = true;
             yield return new WaitForSeconds(seconds);
             _waiting = false;
+        }
+
+        public void AddMoveToUndo(Move move) {
+            undo.AddLastMove(move);
         }
     }
 }

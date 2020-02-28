@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using Cards;
 using Columns;
+using Undo.Moves;
 using UnityEngine;
 
 namespace Managers {
@@ -9,6 +11,7 @@ namespace Managers {
 
         private bool _isDrawThree;
         private int _dropTransformCount;
+        private GameManager _gm;
 
         public static DeckManager Instance { get; private set; }
 
@@ -20,19 +23,21 @@ namespace Managers {
         }
 
         private void Start() {
+            _gm = GameManager.Instance;
             _isDrawThree = Convert.ToBoolean(PlayerPrefs.GetInt("DrawThree"));
         }
 
         public void PickCardFromDeckAfterClick(CardObject card) {
-            if (!GameManager.Instance.Waiting) {
-                StartCoroutine(GameManager.Instance.StartWaiting());
+            _gm = GameManager.Instance;
+            if (!_gm.Waiting) {
+                StartCoroutine(_gm.StartWaiting(0.2f));
 
                 if (_isDrawThree)
                     PickCardFromDeckDrawThree(card);
                 else
                     PickCardFromDeckClassic(card);
 
-                GameManager.Instance.UpdateMove();
+                _gm.UpdateMove();
             }
         }
 
@@ -72,9 +77,10 @@ namespace Managers {
             ManagePreviousColumnCardTrigger(false);
             deckDrop.AddCards(new[] {card});
             _dropTransformCount++;
-            var destination = GameManager.GetCardDestinationPosition(deckDrop.transform, 0);
+            var destination = _gm.GetCardDestinationPosition(deckDrop.transform, 0);
 
-            StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, 500));
+            StartCoroutine(_gm.MoveCardsOnBoard(card, destination, 500));
+            GameManager.Instance.AddMoveToUndo(new DeckMove(deckDrop, new[] {card}));
         }
 
         private bool NeedToTranslateCard(float transitionSpeed, int dropTransformCount) {
@@ -106,10 +112,10 @@ namespace Managers {
         private void MoveDroppedCard(float speed, int formIndex, int toIndex) {
             if (deckDropColumns[formIndex].transform.childCount > 0) {
                 var card = deckDropColumns[formIndex].transform.GetChild(0).GetComponent<CardObject>();
-                var destination = GameManager.GetCardDestinationPosition(deckDropColumns[toIndex].transform, 0);
+                var destination = _gm.GetCardDestinationPosition(deckDropColumns[toIndex].transform, 0);
                 deckDropColumns[toIndex].AddCards(new[] {card});
                 deckDropColumns[formIndex].RemoveCards(new[] {card});
-                StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, speed));
+                StartCoroutine(_gm.MoveCardsOnBoard(card, destination, speed));
             }
         }
 
@@ -135,24 +141,110 @@ namespace Managers {
         }
 
         public void TurnDeck() {
-            for (int i = deckDropColumns.Length - 1; i >= 0; i--) {
-                var column = deckDropColumns[i];
-                for (int j = column.Cards.Count - 1; j >= 0; j--) {
-                    var card = column.Cards[j];
-                    var destination = GameManager.GetCardDestinationPosition(transform, 0);
-                    StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, 500));
-                    card.Flip(true);
-                    card.transform.SetParent(transform);
-                    card.TriggerActive = true;
+            if (!_gm.Waiting) {
+                StartCoroutine(_gm.StartWaiting(1f));
+                _gm.AddMoveToUndo(new TurnDeckMove());
+                for (int i = deckDropColumns.Length - 1; i >= 0; i--) {
+                    var column = deckDropColumns[i];
+                    for (int j = column.Cards.Count - 1; j >= 0; j--) {
+                        var card = column.Cards[j];
+                        var destination = _gm.GetCardDestinationPosition(transform, 0);
+                        StartCoroutine(_gm.MoveCardsOnBoard(card, destination, 500));
+                        card.Flip(true);
+                        card.transform.SetParent(transform);
+                        card.TriggerActive = true;
+                    }
+
+                    column.Cards.RemoveAll(card => card != null);
                 }
 
-                column.Cards.RemoveAll(card => card != null);
+                _dropTransformCount = 0;
+
+                _gm.UpdateScore(-10000);
+                _gm.UpdateMove();
+            }
+        }
+
+        public void UndoDeckDropColumn(Column column) {
+            for (int i = 0; i < deckDropColumns.Length; i++) {
+                if (deckDropColumns[i] == column) {
+                    _dropTransformCount = i;
+                    break;
+                }
             }
 
-            _dropTransformCount = 0;
+            ManagePreviousColumnCardTrigger(false);
+            _dropTransformCount++;
+        }
 
-            GameManager.Instance.UpdateScore(-10000);
-            GameManager.Instance.UpdateMove();
+        public void UndoCardPickedFromDeck(CardObject card) {
+            if (_isDrawThree) {
+                UndoCardPickedFromDeckDrawThree(card);
+            }
+            else {
+                UndoCardPickedFromDeckClassic(card);
+            }
+        }
+
+        private void UndoCardPickedFromDeckDrawThree(CardObject card) {
+            foreach (var dropColumn in deckDropColumns) {
+                RestoreDeckAfterUndo(dropColumn.Cards[dropColumn.Cards.Count - 1]);
+            }
+
+            if (deckDropColumns[0].Cards.Count > 1) {
+                for (int i = deckDropColumns.Length; i > 0; i--) {
+                    var dropColumn = deckDropColumns[0];
+                    deckDropColumns[i].RollbackCard(new[] {dropColumn.transform.GetChild(dropColumn.transform.childCount - 1).GetComponent<CardObject>()});
+                }
+            }
+        }
+
+        private void UndoCardPickedFromDeckClassic(CardObject card) {
+            if (deckDropColumns[deckDropColumns.Length - 1].transform.childCount > 0 && deckDropColumns[0].transform.childCount > 1) {
+                MoveCardsToNextColumn();
+                _dropTransformCount++;
+            }
+
+            RestoreDeckAfterUndo(card);
+        }
+
+        private void MoveCardsToNextColumn() {
+            for (int i = 0; i < deckDropColumns.Length - 1; i++) {
+                var dropColumn = deckDropColumns[i];
+                var cardToMove = i == 0
+                    ? dropColumn.transform.GetChild(dropColumn.transform.childCount - 1).GetComponent<CardObject>()
+                    : dropColumn.transform.GetChild(0).GetComponent<CardObject>();
+
+                deckDropColumns[i + 1].RollbackCard(new[] {cardToMove});
+            }
+        }
+
+        private void RestoreDeckAfterUndo(CardObject card) {
+            Transform cardTransform;
+            (cardTransform = card.transform).SetParent(transform);
+            cardTransform.position = transform.position;
+            card.Flip(true, false);
+        }
+
+        public void UndoTurnDeck() {
+            var firstColumn = deckDropColumns[0];
+            var cards = transform.Cast<Transform>().Select(child => child.GetComponent<CardObject>()).Reverse().ToArray();
+            firstColumn.RollbackCard(cards);
+
+            foreach (var card in cards) {
+                card.Flip(false, false);
+                card.TriggerActive = false;
+            }
+
+            var lastCard = firstColumn.transform.GetChild(firstColumn.Cards.Count - 1).GetComponent<CardObject>();
+            lastCard.TriggerActive = true;
+            for (int i = deckDropColumns.Length - 1; i > 0; i--) {
+                lastCard = firstColumn.transform.GetChild(firstColumn.Cards.Count - 1).GetComponent<CardObject>();
+                deckDropColumns[i].RollbackCard(new[] {lastCard});
+                firstColumn.Cards.Remove(lastCard);
+            }
+
+            _dropTransformCount = deckDropColumns.Length - 1;
         }
     }
 }

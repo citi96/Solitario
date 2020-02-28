@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cards;
 using Managers;
+using Undo.Moves;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -42,11 +43,15 @@ namespace Columns {
             return success;
         }
 
+        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromColumnMove(this, toColumn, cardsMoved));
+        }
+
         protected override void AddCardsToList(IEnumerable<CardObject> cardsToAdd, bool success) {
             var cardsArray = cardsToAdd as CardObject[] ?? cardsToAdd.ToArray();
             base.AddCardsToList(cardsArray, success);
             if (success) {
-                StartCoroutine(GameManager.MoveCardsOnBoard(cardsArray[0], GameManager.GetCardDestinationPosition(transform, Spacing)));
+                StartCoroutine(GameManager.Instance.MoveCardsOnBoard(cardsArray[0], GameManager.Instance.GetCardDestinationPosition(transform, Spacing)));
             }
         }
 
@@ -58,7 +63,5 @@ namespace Columns {
         protected override void UpdateCardOperation() {
             GameManager.Instance.UpdateScore(addingScore - 5);
         }
-
-        public override void UpdateColumn() { }
     }
 }

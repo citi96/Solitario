@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cards;
 using Managers;
+using Undo.Moves;
 using UnityEngine;
 
 namespace Columns {
@@ -23,5 +24,9 @@ namespace Columns {
         }
 
         public override void UpdateColumn() { }
+
+        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromDeckDropColumnMove(this, toColumn, cardsMoved));
+        }
     }
 }

@@ -30,6 +30,14 @@ namespace Columns {
             }
         }
 
+        // Update last card ultimate check
+        public override void UpdateColumn() {
+            Card newCard;
+            if (Cards.Count > 0 && Cards[Cards.Count - 1].Card != (newCard = card)) {
+                card = newCard;
+            }
+        }
+
         protected void UpdateScore(CardObject[] cardsToAdd, bool success) {
             if (success) {
                 foreach (var cardObject in cardsToAdd) {

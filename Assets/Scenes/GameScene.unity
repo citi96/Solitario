@@ -1035,6 +1035,7 @@ MonoBehaviour:
   deckTransform: {fileID: 1318153075}
   draggedCards: {fileID: 1108844242}
   topGui: {fileID: 462980027}
+  undo: {fileID: 398109037}
   enablePauseButtonEvent: {fileID: 11400000, guid: db6080ff78cd296669a4a28ff661eb46,
     type: 2}
   enableCardTriggerEvent: {fileID: 11400000, guid: 4c575a6f78659b637ad30a4b29b92b81,
@@ -1697,6 +1698,7 @@ GameObject:
   - component: {fileID: 398109036}
   - component: {fileID: 398109035}
   - component: {fileID: 398109034}
+  - component: {fileID: 398109037}
   m_Layer: 5
   m_Name: Undo
   m_TagString: Untagged
@@ -1762,11 +1764,22 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 0
+  m_Interactable: 1
   m_TargetGraphic: {fileID: 398109035}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 398109037}
+        m_MethodName: UndoMove
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &398109035
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1803,6 +1816,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 398109032}
   m_CullTransparentMesh: 0
+--- !u!114 &398109037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 398109032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77daf83624d444d1bbfd2536a7ef09a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  undoButton: {fileID: 398109034}
 --- !u!1001 &436057610
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3715,7 +3741,7 @@ PrefabInstance:
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 171.2
+      value: 171.20001
       objectReference: {fileID: 0}
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}
@@ -5010,7 +5036,7 @@ PrefabInstance:
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 171.2
+      value: 171.20001
       objectReference: {fileID: 0}
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}
@@ -6197,7 +6223,7 @@ PrefabInstance:
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 171.2
+      value: 171.20001
       objectReference: {fileID: 0}
     - target: {fileID: 866040364371662557, guid: f4bee561ff342445fa6f87ec82a539b4,
         type: 3}

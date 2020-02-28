@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cards;
+using Managers;
+using Undo.Moves;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +10,9 @@ namespace Columns {
     public class VerticalColumn : StandardColumn {
         [SerializeField] private VerticalLayoutGroup layoutGroup;
         [SerializeField] private int maxCoveredCards;
+
+        private bool _hasFlippedCard;
+
         protected override CardEnum.CardSuit Suit { get; set; }
 
         public override float Spacing => layoutGroup.spacing;
@@ -26,7 +31,7 @@ namespace Columns {
         public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
             base.RemoveCards(cardsToRemove);
             if (Cards.Count > 0) {
-                TurnTopCard();
+                FlipLastCard();
             }
         }
 
@@ -37,7 +42,7 @@ namespace Columns {
             bool success = false;
             var cardToAdd = cardsToAdd[0].Card;
 
-            if (Cards.Count > 0 && !IsComplete)
+            if (Cards.Count(c => c.Card.IsVisible) > 0 && !IsComplete)
                 success = card.SuitColor != cardToAdd.SuitColor && card.Number == cardToAdd.Number + 1;
             else if (Cards.Count == 0) success = cardToAdd.Number == 13;
 
@@ -48,7 +53,7 @@ namespace Columns {
         }
 
         public override void UpdateColumn() {
-            var visibleCards = Cards.Where(card => card.Card.IsVisible).ToList();
+            var visibleCards = Cards.Where(cardObject => cardObject.Card.IsVisible).ToList();
             int turnedCardsCount = Cards.Count - visibleCards.Count;
 
             visibleCards.Sort();
@@ -57,11 +62,17 @@ namespace Columns {
                 visibleCards.ElementAt(i).transform.SetSiblingIndex(turnedCardsCount++);
         }
 
-        public void TurnTopCard() {
+        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromVerticalColumnMove(this, toColumn, cardsMoved, _hasFlippedCard));
+            _hasFlippedCard = false;
+        }
+
+        public void FlipLastCard(bool visible = true, bool animated = true) {
             int childCount = Cards.Count;
 
-            if (childCount > 0 && !Cards[childCount - 1].Card.IsVisible) {
-                Cards[childCount - 1].Flip(false);
+            if (childCount > 0 && !Cards[childCount - 1].Card.IsVisible == visible) {
+                Cards[childCount - 1].Flip(!visible, animated);
+                _hasFlippedCard = visible;
             }
         }
 

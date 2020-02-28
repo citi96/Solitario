@@ -36,6 +36,17 @@ namespace Columns {
         /// </summary>
         public abstract void UpdateColumn();
 
+        public void RollbackCard(CardObject[] cards) {
+            AddCardsToList(cards, true);
+            foreach (var cardObject in cards) {
+                Transform cardTransform;
+                (cardTransform = cardObject.transform).SetParent(transform);
+                cardTransform.position = transform.position;
+            }
+        }
+
+        public abstract void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved);
+
         protected virtual void AddCardsToList(IEnumerable<CardObject> cardsToAdd, bool success) {
             if (success) {
                 foreach (var cardObject in cardsToAdd) {

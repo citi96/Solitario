@@ -17,6 +17,7 @@ namespace Cards {
         private Card _card;
         private DraggedCards _draggedCards;
         private Column _draggedColumn;
+        private GameManager _gm;
 
         public bool IsInDeck { get; set; } = false;
 
@@ -30,6 +31,10 @@ namespace Cards {
 
         public bool TriggerActive {
             set => trigger.gameObject.SetActive(value);
+        }
+
+        private void Start() {
+            _gm = GameManager.Instance;
         }
 
         public int CompareTo(object obj) {
@@ -69,9 +74,23 @@ namespace Cards {
         /// Flip the card up or down.
         /// </summary>
         /// <param name="down">True = card is facing down (back visible); False = card is facing up.</param>
-        public void Flip(bool down) {
-            StartCoroutine(PlayFlipAnimation(down ? 0 : 180, down, down ? -1 : 1));
+        /// <param name="animated">Disable animation during rollback</param>
+        public void Flip(bool down, bool animated = true) {
+            if (animated)
+                StartCoroutine(PlayFlipAnimation(down ? 0 : 180, down, down ? -1 : 1));
+            else
+                FlipNoAnimation(down ? 0 : 180, down, down ? -1 : 1);
+
             Card.IsVisible = !down;
+        }
+
+        private void FlipNoAnimation(int y, bool down, int direction) {
+            while (Math.Abs(transform.eulerAngles.y - y) > 1f) {
+                transform.Rotate(Vector3.up, 10 * direction);
+                if (Math.Abs(transform.eulerAngles.y - 90) < 1f) {
+                    back.gameObject.SetActive(down);
+                }
+            }
         }
 
         private IEnumerator PlayFlipAnimation(float y, bool down, int direction) {
@@ -87,18 +106,16 @@ namespace Cards {
 
         public void OnCardSelected() {
             // Do not enable dragging operation if others are still pending
-            if (GameManager.Instance.DraggedCards.transform.childCount > 0)
+            if (_gm.DraggedCards.transform.childCount > 0 && _gm.Waiting)
                 return;
 
-            _draggedCards = GameManager.Instance.DraggedCards;
+            _draggedCards = _gm.DraggedCards;
             _draggedColumn = GetComponentInParent<Column>();
             var cardsToDrag = _draggedColumn.PickCardsFromColumn(this);
 
-            _draggedCards.gameObject.SetActive(true);
-
             foreach (var card in cardsToDrag) {
                 card.transform.SetParent(_draggedCards.transform);
-                var destination = GameManager.GetCardDestinationPosition(_draggedCards.transform, _draggedCards.Spacing);
+                var destination = _gm.GetCardDestinationPosition(_draggedCards.transform, _draggedCards.Spacing);
                 card.transform.position = destination;
             }
         }
@@ -120,14 +137,16 @@ namespace Cards {
                 if (hitCollider.CanAddCards(cardsToAdd)) {
                     _draggedCards.AddCardToColumn(hitCollider.Column);
                     _draggedColumn.RemoveCards(cardsToAdd);
-                    GameManager.Instance.NotifyMoveToColumns();
+                    //_gm.NotifyMoveToColumns();
+                    _draggedColumn.InstantiateMoveToUndo(hitCollider.Column, cardsToAdd);
                     return;
                 }
             }
 
-            _draggedCards.MoveCardsToColumn(GameManager.GetCardDestinationPosition(_draggedColumn.transform, _draggedColumn.Spacing),
+            _draggedCards.MoveCardsToColumn(_gm.GetCardDestinationPosition(_draggedColumn.transform, _draggedColumn.Spacing, 1),
                 0.02f, _draggedColumn);
 
+            StartCoroutine(_gm.StartWaiting(0.2f));
             _draggedCards = null;
             _draggedColumn = null;
         }
