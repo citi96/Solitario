@@ -1,3 +1,4 @@
+using System;
 using Managers;
 using Undo.Moves;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace Undo {
     public class Undo : MonoBehaviour {
         [SerializeField] private Button undoButton;
 
-        private readonly DropOutStack<Move> _moves = new DropOutStack<Move>(3);
+        private readonly DropOutStack<Move> _moves = new DropOutStack<Move>(Convert.ToInt32(PlayerPrefs.GetString("UndoCount")));
 
         private void Awake() {
             if (PlayerPrefs.GetInt("DrawThree") == 1) {
@@ -26,7 +27,7 @@ namespace Undo {
 
         public void UndoMove() {
             if (!GameManager.Instance.Waiting) {
-                StartCoroutine(GameManager.Instance.StartWaiting());
+                StartCoroutine(GameManager.Instance.StartWaiting(0.1f));
                 _moves.Pop().Rollback();
             }
         }

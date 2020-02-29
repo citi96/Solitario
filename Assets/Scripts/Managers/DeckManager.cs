@@ -98,9 +98,10 @@ namespace Managers {
                 var lastCardInColumn = deckDropColumn.Cards[deckDropColumn.Cards.Count - 1];
                 lastCardInColumn.TriggerActive = active;
             }
-            else if (deckDropColumns[0].Cards.Count > 0 && deckDropColumns[1].Cards.Count == 0) {
-                deckDropColumns[0].Cards[deckDropColumns[0].Cards.Count - 1].TriggerActive = active;
-            }
+
+            /*else if (deckDropColumns[0].Cards.Count > 0 && deckDropColumns[1].Cards.Count == 0) {
+                deckDropColumns[0].Cards[deckDropColumns[0].Cards.Count - 1].TriggerActive = true;
+            }*/
         }
 
         private void MoveDroppedCardsToPreviousColumn(float speed) {
@@ -169,6 +170,7 @@ namespace Managers {
             for (int i = 0; i < deckDropColumns.Length; i++) {
                 if (deckDropColumns[i] == column) {
                     _dropTransformCount = i;
+                    deckDropColumns[i].Cards[deckDropColumns[i].Cards.Count - 1].TriggerActive = true;
                     break;
                 }
             }
@@ -180,8 +182,7 @@ namespace Managers {
         public void UndoCardPickedFromDeck(CardObject card) {
             if (_isDrawThree) {
                 UndoCardPickedFromDeckDrawThree(card);
-            }
-            else {
+            } else {
                 UndoCardPickedFromDeckClassic(card);
             }
         }
@@ -201,20 +202,29 @@ namespace Managers {
 
         private void UndoCardPickedFromDeckClassic(CardObject card) {
             if (deckDropColumns[deckDropColumns.Length - 1].transform.childCount > 0 && deckDropColumns[0].transform.childCount > 1) {
-                MoveCardsToNextColumn();
-                _dropTransformCount++;
+                MoveCardsToNextColumnAfterUndo();
+                _dropTransformCount = deckDropColumns.Length; // restore the index when card is picked from deck
+            } else {
+                // If there is nothing to move it means a card have been removed from deck
+                // columns so decrement the index to point to the first empty column
+                _dropTransformCount = _dropTransformCount > 0 ? _dropTransformCount-- : 0;
+            }
+
+            if (_dropTransformCount != 0) {
+                var currentDeckDropColumn = deckDropColumns[_dropTransformCount - 1];
+                currentDeckDropColumn.Cards[currentDeckDropColumn.Cards.Count - 1].TriggerActive = true; // Restore the trigger since this is the first card now
             }
 
             RestoreDeckAfterUndo(card);
         }
 
-        private void MoveCardsToNextColumn() {
+        private void MoveCardsToNextColumnAfterUndo() {
             for (int i = 0; i < deckDropColumns.Length - 1; i++) {
                 var dropColumn = deckDropColumns[i];
                 var cardToMove = i == 0
                     ? dropColumn.transform.GetChild(dropColumn.transform.childCount - 1).GetComponent<CardObject>()
                     : dropColumn.transform.GetChild(0).GetComponent<CardObject>();
-
+                deckDropColumns[i].Cards.Remove(cardToMove);
                 deckDropColumns[i + 1].RollbackCard(new[] {cardToMove});
             }
         }
