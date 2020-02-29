@@ -9,12 +9,14 @@ namespace Undo {
     public class Undo : MonoBehaviour {
         [SerializeField] private Button undoButton;
 
-        private readonly DropOutStack<Move> _moves = new DropOutStack<Move>(Convert.ToInt32(PlayerPrefs.GetString("UndoCount")));
+        private DropOutStack<Move> _moves;
 
         private void Awake() {
             if (PlayerPrefs.GetInt("DrawThree") == 1) {
                 gameObject.SetActive(false);
             }
+
+            _moves = new DropOutStack<Move>(Convert.ToInt32(PlayerPrefs.GetString("UndoCount")));
         }
 
         private void Update() {

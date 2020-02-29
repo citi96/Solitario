@@ -22,6 +22,11 @@ namespace Columns {
             return children.Skip(i).ToArray();
         }
 
+        /// <summary>
+        /// Use this method to add cards to column, use CanAddsCard to check if a card can be added to the column without actually adding it.
+        /// </summary>
+        /// <param name="cardsToAdd">Cards to be added to the column if possible</param>
+        /// <returns>Return if this operation has success</returns>
         public abstract bool AddCards(CardObject[] cardsToAdd);
 
         public virtual void RemoveCards(IEnumerable<CardObject> cards) {
@@ -35,6 +40,13 @@ namespace Columns {
         /// Sometimes order is lost after such operation, this method prevents this possibility. 
         /// </summary>
         public abstract void UpdateColumn();
+
+        /// <summary>
+        /// Check whenever or not a card can be added to the column without adding it the list.
+        /// </summary>
+        /// <param name="cardToAdd">Te card to check</param>
+        /// <returns>The result of the check</returns>
+        public abstract bool CanAddCard(Card cardToAdd);
 
         public void RollbackCard(CardObject[] cards) {
             AddCardsToList(cards, true);
@@ -54,5 +66,15 @@ namespace Columns {
                 }
             }
         }
+
+        public virtual CardObject GetFirstVisibleCard() {
+            return Cards.FirstOrDefault(c => c.Card.IsVisible);
+        }
+
+        public virtual CardObject GetLastVisibleCard() {
+            return Cards.LastOrDefault(c => c.Card.IsVisible);
+        }
+
+        public abstract bool CanHaveHiddenCard();
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cards;
 using Managers;
 using Undo.Moves;
@@ -25,8 +26,38 @@ namespace Columns {
 
         public override void UpdateColumn() { }
 
+        /// <summary>
+        /// It's impossible to add a card directly to a DeckDropColumn.
+        /// </summary>
+        /// <param name="cardToAdd"></param>
+        /// <returns>Always false</returns>
+        public override bool CanAddCard(Card cardToAdd) {
+            return false;
+        }
+
         public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
             GameManager.Instance.AddMoveToUndo(new FromDeckDropColumnMove(this, toColumn, cardsMoved));
+        }
+
+        /// <summary>
+        /// The first visible card is the one that can be picked, so it must have its trigger enabled.
+        /// Moreover in the first column the first visible card is the last one.
+        /// </summary>
+        /// <returns></returns>
+        public override CardObject GetFirstVisibleCard() {
+            return Cards.LastOrDefault(c => c.TriggerActive);
+        }
+
+        /// <summary>
+        /// Does exactly what GetFirstVisibleCard does.
+        /// </summary>
+        /// <returns></returns>
+        public override CardObject GetLastVisibleCard() {
+            return GetFirstVisibleCard();
+        }
+
+        public override bool CanHaveHiddenCard() {
+            return false;
         }
     }
 }

@@ -37,18 +37,23 @@ namespace Columns {
 
         protected override void UpdateCardOperation() { }
 
-
         public override bool AddCards(CardObject[] cardsToAdd) {
             bool success = false;
             var cardToAdd = cardsToAdd[0].Card;
 
-            if (Cards.Count(c => c.Card.IsVisible) > 0 && !IsComplete)
-                success = card.SuitColor != cardToAdd.SuitColor && card.Number == cardToAdd.Number + 1;
-            else if (Cards.Count == 0) success = cardToAdd.Number == 13;
+            success = CanAddCard(cardToAdd);
 
             AddCardsToList(cardsToAdd, success);
             UpdateScore(cardsToAdd, success);
 
+            return success;
+        }
+
+        public override bool CanAddCard(Card cardToAdd) {
+            bool success = false;
+            if (Cards.Count(c => c.Card.IsVisible) > 0 && !IsComplete)
+                success = card.SuitColor != cardToAdd.SuitColor && card.Number == cardToAdd.Number + 1;
+            else if (Cards.Count == 0) success = cardToAdd.Number == 13;
             return success;
         }
 
@@ -65,6 +70,10 @@ namespace Columns {
         public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
             GameManager.Instance.AddMoveToUndo(new FromVerticalColumnMove(this, toColumn, cardsMoved, _hasFlippedCard));
             _hasFlippedCard = false;
+        }
+
+        public override bool CanHaveHiddenCard() {
+            return true;
         }
 
         public void FlipLastCard(bool visible = true, bool animated = true) {

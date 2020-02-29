@@ -27,18 +27,22 @@ namespace Columns {
         public override bool AddCards(CardObject[] cardsToAdd) {
             bool success = false;
             var cardToAdd = cardsToAdd[0].Card;
+            success = CanAddCard(cardToAdd);
+            AddCardsToList(cardsToAdd, success);
+            UpdateScore(cardsToAdd, success);
 
+            return success;
+        }
+
+        public override bool CanAddCard(Card cardToAdd) {
+            bool success = false;
             if (Suit == cardToAdd.Suit) {
                 if (!IsComplete && Cards.Count > 0) {
                     success = cardToAdd.Number == card.Number + 1;
-                }
-                else if (Cards.Count == 0) {
+                } else if (Cards.Count == 0) {
                     success = cardToAdd.Number == 1;
                 }
             }
-
-            AddCardsToList(cardsToAdd, success);
-            UpdateScore(cardsToAdd, success);
 
             return success;
         }
@@ -53,6 +57,10 @@ namespace Columns {
             if (success) {
                 StartCoroutine(GameManager.Instance.MoveCardsOnBoard(cardsArray[0], GameManager.Instance.GetCardDestinationPosition(transform, Spacing)));
             }
+        }
+
+        public override bool CanHaveHiddenCard() {
+            return false;
         }
 
         public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {

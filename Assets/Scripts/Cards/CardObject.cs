@@ -30,6 +30,7 @@ namespace Cards {
         }
 
         public bool TriggerActive {
+            get => trigger.gameObject.activeSelf;
             set => trigger.gameObject.SetActive(value);
         }
 
