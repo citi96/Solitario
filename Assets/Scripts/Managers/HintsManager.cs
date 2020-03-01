@@ -54,7 +54,7 @@ namespace Managers {
             for (int i = 0; i < hintCards.Count; i++) {
                 var card = hintCards[i];
                 var destination = GameManager.Instance.GetCardDestinationPosition(toColumn.transform, toColumn.Spacing, 1 + i);
-                StartCoroutine(GameManager.Instance.MoveCardsOnBoard(card, destination, 500, DestroyHintCard));
+                StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, 500, DestroyHintCard));
             }
         }
 

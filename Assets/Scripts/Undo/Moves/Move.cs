@@ -14,9 +14,9 @@ namespace Undo.Moves {
             gm = GameManager.Instance;
         }
 
-        public virtual void Rollback() {
+        public void Rollback() {
             if (toColumn != null) {
-                toColumn.RemoveCards(cards);
+                toColumn.RemoveCards(cards, false);
             }
 
             RollbackMove();

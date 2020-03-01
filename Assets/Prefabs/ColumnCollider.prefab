@@ -71,4 +71,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   column: {fileID: 0}
-  collider: {fileID: 1224291719096190633}
+  canvas: {fileID: 0}
+  canvasDefaultScaling: 0.133

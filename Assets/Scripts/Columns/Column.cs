@@ -29,7 +29,7 @@ namespace Columns {
         /// <returns>Return if this operation has success</returns>
         public abstract bool AddCards(CardObject[] cardsToAdd);
 
-        public virtual void RemoveCards(IEnumerable<CardObject> cards) {
+        public virtual void RemoveCards(IEnumerable<CardObject> cards, bool removePoints = true) {
             foreach (var cardToRemove in cards) {
                 Cards.Remove(cardToRemove);
             }
@@ -57,7 +57,7 @@ namespace Columns {
             }
         }
 
-        public abstract void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved);
+        public abstract void InstantiateMoveToUndo(StandardColumn toColumn, CardObject[] cardsMoved);
 
         protected virtual void AddCardsToList(IEnumerable<CardObject> cardsToAdd, bool success) {
             if (success) {

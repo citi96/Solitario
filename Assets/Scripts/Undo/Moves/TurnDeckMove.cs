@@ -6,6 +6,7 @@ namespace Undo.Moves {
 
         protected override void RollbackMove() {
             DeckManager.Instance.UndoTurnDeck();
+            GameManager.Instance.UndoScore();
         }
     }
 }

@@ -7,15 +7,10 @@ using UnityEngine.UI;
 namespace GUI.Menus {
     public class OptionMenu : MonoBehaviour {
         [SerializeField] private TMP_Text undoCount;
+        [SerializeField] private TMP_Text bestScore;
+        [SerializeField] private TMP_Text bestScoreDrawThree;
         [SerializeField] private Slider undoSlider;
         [SerializeField] private Toggle hintsToggle;
-
-        private void Awake() {
-            if (!PlayerPrefs.HasKey("UndoCount")) {
-                PlayerPrefs.SetInt("HintsToggle", 0);
-                PlayerPrefs.SetString("UndoCount", "3");
-            }
-        }
 
         private void OnEnable() {
             if (undoCount != null) {
@@ -24,6 +19,12 @@ namespace GUI.Menus {
             }
 
             hintsToggle.isOn = Convert.ToBoolean(PlayerPrefs.GetInt("HintsToggle"));
+            BestScoreSetup();
+        }
+
+        private void BestScoreSetup() {
+            bestScore.text = PlayerPrefs.GetInt("BestScore").ToString();
+            bestScoreDrawThree.text = PlayerPrefs.GetInt("BestScoreDrawThree").ToString();
         }
 
         public void Toggle() {

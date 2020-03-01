@@ -20,12 +20,11 @@ namespace Columns {
                 UpdateLastCard(Cards[Cards.Count - 1].Card);
         }
 
-        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
-            base.RemoveCards(cardsToRemove);
+        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove, bool removePoints = false) {
+            base.RemoveCards(cardsToRemove, removePoints);
             if (Cards.Count > 0) {
                 UpdateLastCard(Cards[Cards.Count - 1].Card);
-            }
-            else {
+            } else {
                 card = null;
             }
         }
@@ -38,22 +37,23 @@ namespace Columns {
             }
         }
 
-        protected void UpdateScore(CardObject[] cardsToAdd, bool success) {
-            if (success) {
-                foreach (var cardObject in cardsToAdd) {
-                    if (!cardObject.Card.HasBeenInVerticalColumn) {
-                        GameManager.Instance.UpdateScore(addingScore);
-                        cardObject.Card.HasBeenInVerticalColumn = true;
-                    }
-                    else {
-                        UpdateCardOperation();
-                    }
-                }
-
-                GameManager.Instance.UpdateMove();
-            }
+        public override void InstantiateMoveToUndo(StandardColumn toColumn, CardObject[] cardsMoved) {
+            toColumn.UpdateScore(cardsMoved);
         }
 
-        protected abstract void UpdateCardOperation();
+        public void UpdateScore(CardObject[] cardsToAdd) {
+            foreach (var cardObject in cardsToAdd) {
+                if (!cardObject.Card.HasBeenInVerticalColumn) {
+                    GameManager.Instance.UpdateScore(addingScore);
+                    cardObject.Card.HasBeenInVerticalColumn = true;
+                } else {
+                    AddCardAlreadyAddedScore();
+                }
+            }
+
+            GameManager.Instance.UpdateMove();
+        }
+
+        protected abstract void AddCardAlreadyAddedScore();
     }
 }

@@ -28,23 +28,20 @@ namespace Columns {
             if (Cards.Count == maxCoveredCards + 1) UpdateLastCard(card.Card);
         }
 
-        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
+        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove, bool removePoints = true) {
             base.RemoveCards(cardsToRemove);
             if (Cards.Count > 0) {
                 FlipLastCard();
             }
         }
 
-        protected override void UpdateCardOperation() { }
+        protected override void AddCardAlreadyAddedScore() { }
 
         public override bool AddCards(CardObject[] cardsToAdd) {
-            bool success = false;
+            bool success;
             var cardToAdd = cardsToAdd[0].Card;
-
             success = CanAddCard(cardToAdd);
-
             AddCardsToList(cardsToAdd, success);
-            UpdateScore(cardsToAdd, success);
 
             return success;
         }
@@ -67,9 +64,11 @@ namespace Columns {
                 visibleCards.ElementAt(i).transform.SetSiblingIndex(turnedCardsCount++);
         }
 
-        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
-            GameManager.Instance.AddMoveToUndo(new FromVerticalColumnMove(this, toColumn, cardsMoved, _hasFlippedCard));
+        public override void InstantiateMoveToUndo(StandardColumn toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromVerticalColumnMove(this, toColumn, cardsMoved, _hasFlippedCard,
+                cardsMoved.Select(cardObject => cardObject.Card.HasBeenInVerticalColumn).ToList()));
             _hasFlippedCard = false;
+            base.InstantiateMoveToUndo(toColumn, cardsMoved);
         }
 
         public override bool CanHaveHiddenCard() {

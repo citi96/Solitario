@@ -19,8 +19,8 @@ namespace Columns {
             return true;
         }
 
-        public override void RemoveCards(IEnumerable<CardObject> card) {
-            base.RemoveCards(card);
+        public override void RemoveCards(IEnumerable<CardObject> card, bool removePoints = true) {
+            base.RemoveCards(card, removePoints);
             DeckManager.Instance.UpdateDeckDropColumnAfterCardRemove(this);
         }
 
@@ -35,8 +35,10 @@ namespace Columns {
             return false;
         }
 
-        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
-            GameManager.Instance.AddMoveToUndo(new FromDeckDropColumnMove(this, toColumn, cardsMoved));
+        public override void InstantiateMoveToUndo(StandardColumn toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromDeckDropColumnMove(this, toColumn, cardsMoved,
+                cardsMoved.Select(cardObject => cardObject.Card.HasBeenInVerticalColumn).ToList()));
+            toColumn.UpdateScore(cardsMoved);
         }
 
         /// <summary>

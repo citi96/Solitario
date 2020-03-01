@@ -31,6 +31,7 @@ namespace Undo {
             if (!GameManager.Instance.Waiting) {
                 StartCoroutine(GameManager.Instance.StartWaiting(0.1f));
                 _moves.Pop().Rollback();
+                GameManager.Instance.UpdateMove();
             }
         }
     }

@@ -25,11 +25,10 @@ namespace Columns {
         }
 
         public override bool AddCards(CardObject[] cardsToAdd) {
-            bool success = false;
+            bool success;
             var cardToAdd = cardsToAdd[0].Card;
             success = CanAddCard(cardToAdd);
             AddCardsToList(cardsToAdd, success);
-            UpdateScore(cardsToAdd, success);
 
             return success;
         }
@@ -47,15 +46,17 @@ namespace Columns {
             return success;
         }
 
-        public override void InstantiateMoveToUndo(Column toColumn, CardObject[] cardsMoved) {
-            GameManager.Instance.AddMoveToUndo(new FromColumnMove(this, toColumn, cardsMoved));
+        public override void InstantiateMoveToUndo(StandardColumn toColumn, CardObject[] cardsMoved) {
+            GameManager.Instance.AddMoveToUndo(new FromColumnMove(this, toColumn, cardsMoved,
+                cardsMoved.Select(cardObject => cardObject.Card.HasBeenInVerticalColumn).ToList()));
+            base.InstantiateMoveToUndo(toColumn, cardsMoved);
         }
 
         protected override void AddCardsToList(IEnumerable<CardObject> cardsToAdd, bool success) {
             var cardsArray = cardsToAdd as CardObject[] ?? cardsToAdd.ToArray();
             base.AddCardsToList(cardsArray, success);
             if (success) {
-                StartCoroutine(GameManager.Instance.MoveCardsOnBoard(cardsArray[0], GameManager.Instance.GetCardDestinationPosition(transform, Spacing)));
+                StartCoroutine(GameManager.MoveCardsOnBoard(cardsArray[0], GameManager.Instance.GetCardDestinationPosition(transform, Spacing)));
             }
         }
 
@@ -63,12 +64,13 @@ namespace Columns {
             return false;
         }
 
-        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove) {
-            base.RemoveCards(cardsToRemove);
-            GameManager.Instance.UpdateScore(removingScore);
+        public override void RemoveCards(IEnumerable<CardObject> cardsToRemove, bool removePoints = true) {
+            base.RemoveCards(cardsToRemove, removePoints);
+            if (removePoints)
+                GameManager.Instance.UpdateScore(removingScore);
         }
 
-        protected override void UpdateCardOperation() {
+        protected override void AddCardAlreadyAddedScore() {
             GameManager.Instance.UpdateScore(addingScore - 5);
         }
     }

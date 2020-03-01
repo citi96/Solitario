@@ -79,7 +79,7 @@ namespace Managers {
             _dropTransformCount++;
             var destination = _gm.GetCardDestinationPosition(deckDrop.transform, 0);
 
-            StartCoroutine(_gm.MoveCardsOnBoard(card, destination, 500));
+            StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, 500));
             GameManager.Instance.AddMoveToUndo(new DeckMove(deckDrop, new[] {card}));
         }
 
@@ -116,7 +116,7 @@ namespace Managers {
                 var destination = _gm.GetCardDestinationPosition(deckDropColumns[toIndex].transform, 0);
                 deckDropColumns[toIndex].AddCards(new[] {card});
                 deckDropColumns[formIndex].RemoveCards(new[] {card});
-                StartCoroutine(_gm.MoveCardsOnBoard(card, destination, speed));
+                StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, speed));
             }
         }
 
@@ -150,7 +150,7 @@ namespace Managers {
                     for (int j = column.Cards.Count - 1; j >= 0; j--) {
                         var card = column.Cards[j];
                         var destination = _gm.GetCardDestinationPosition(transform, 0);
-                        StartCoroutine(_gm.MoveCardsOnBoard(card, destination, 500));
+                        StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, 500));
                         card.Flip(true);
                         card.transform.SetParent(transform);
                         card.TriggerActive = true;

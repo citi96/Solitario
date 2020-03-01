@@ -7,6 +7,7 @@ using Events;
 using GUI;
 using Undo.Moves;
 using UnityEngine;
+using Random = System.Random;
 
 namespace Managers {
     public delegate void CallBack(CardObject cardObject, VerticalColumn column);
@@ -106,7 +107,7 @@ namespace Managers {
         }
 
         private void ShuffleDeck() {
-            var random = new System.Random();
+            var random = new Random();
 
             for (int i = _allCards.Length - 1; i > 0; i--) {
                 int j = random.Next(i);
@@ -138,7 +139,7 @@ namespace Managers {
         }
 
 
-        public IEnumerator MoveCardsOnBoard(CardObject card, Vector3 destination, float speed = 1000, CallBack callBack = null,
+        public static IEnumerator MoveCardsOnBoard(CardObject card, Vector3 destination, float speed = 1000, CallBack callBack = null,
             VerticalColumn column = null) {
             while (Vector3.Distance(card.transform.position, destination) >= 5) {
                 card.transform.position = Vector3.MoveTowards(card.transform.position, destination, Time.deltaTime * speed);
@@ -165,6 +166,14 @@ namespace Managers {
 
         public void AddMoveToUndo(Move move) {
             undo.AddLastMove(move);
+        }
+
+        public int GetScore() {
+            return topGui.ScoreText;
+        }
+
+        public void UndoScore() {
+            topGui.UndoScore();
         }
     }
 }
