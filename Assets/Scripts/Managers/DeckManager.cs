@@ -50,6 +50,7 @@ namespace Managers {
                 MoveDroppedCardsToPreviousColumn(50);
             }
 
+            _dropTransformCount = 0;
             for (int i = 0; i < 3; i++) {
                 if (transform.childCount == 0) {
                     return;
@@ -58,6 +59,10 @@ namespace Managers {
                 if (i != 0) {
                     card = transform.GetChild(transform.childCount - 1).GetComponent<CardObject>();
                 }
+
+                /*if (i != 2) {
+                    card.TriggerActive = false;
+                }*/
 
                 PickCardFromDeck(card);
             }
@@ -117,6 +122,10 @@ namespace Managers {
                 deckDropColumns[toIndex].AddCards(new[] {card});
                 deckDropColumns[formIndex].RemoveCards(new[] {card});
                 StartCoroutine(GameManager.MoveCardsOnBoard(card, destination, speed));
+                
+                if (card.TriggerActive) {
+                    card.TriggerActive = false;
+                }
             }
         }
 
